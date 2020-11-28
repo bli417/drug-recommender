@@ -1,0 +1,10 @@
+exclude \
+  tabpy/tabpy_server/state.ini
+
+include \
+  CHANGELOG \
+  LICENSE \
+  tabpy/VERSION \
+  tabpy/tabpy_server/state.ini.template \
+  tabpy/tabpy_server/static/* \
+  tabpy/tabpy_server/common/default.conf

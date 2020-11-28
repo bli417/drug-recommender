@@ -1,0 +1,35 @@
+build:
+  environment:
+    python: 3.7.6
+  nodes:
+    coverage:
+      project_setup:
+        override:
+          - pip install -r requirements.txt
+          - pip install -r requirements_dev.txt
+      tests:
+        override:
+          - command: 'pytest tests --cov=tabpy --cov-config=setup.cfg'
+            coverage:
+              file: '.coverage'
+              config_file: 'setup.cfg'
+              format: 'py-cc'
+    analysis:
+      project_setup:
+        override: 
+          - pip install -r requirements.txt
+      tests:
+        override: [py-scrutinizer-run]
+  tests:
+    before:
+      - pip install -r requirements.txt
+    override: [pytest]
+checks:
+  python:
+    code_rating: true
+    duplicate_code: true
+filter:
+  excluded_paths:
+    - '*/tests/*'
+  dependency_paths:
+    - 'lib/*'

@@ -1,0 +1,181 @@
+{
+	"info": {
+		"_postman_id": "add0b83b-3c11-4c80-973a-0a5fbf803e58",
+		"name": "TabPy",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "{{host}}:{{port}}/info",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}:{{port}}/info",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"info"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}:{{port}}/evaluate",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "P@ssw0rd",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "user1",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "TabPy-Client",
+						"value": "Postman for manual testing",
+						"type": "text"
+					},
+					{
+						"key": "TabPy-User",
+						"value": "ogolovatyi",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"data\": \n\t{ \n\t\t\"_arg1\" : [1, 2, 3], \n\t\t\"_arg2\" : [3, -1, 5]\n\t},\n\t\"script\": \n\t\"return [x + y for x, y in zip(_arg1, _arg2)]\"\n}\n",
+					"options": {
+						"raw": {}
+					}
+				},
+				"url": {
+					"raw": "{{host}}:{{port}}/evaluate",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"evaluate"
+					],
+					"query": [
+						{
+							"key": "TabPy-Client",
+							"value": "Postman for Manual Testing",
+							"disabled": true
+						},
+						{
+							"key": "TabPy-User",
+							"value": "ogolovatyi",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{endpoint}}/status",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}:{{port}}/status",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"status"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}:{{port}}/endpoints",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}:{{port}}/endpoints",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"endpoints"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}:{{port}}/query/model_name",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"data\": {\r\n    \"x\": [\r\n      6.35,\r\n      6.4,\r\n      6.65,\r\n      8.6,\r\n      8.9,\r\n      9,\r\n      9.1\r\n    ],\r\n    \"y\": [\r\n      1.95,\r\n      1.95,\r\n      2.05,\r\n      3.05,\r\n      3.05,\r\n      3.1,\r\n      3.15\r\n    ]\r\n  }\r\n}"
+				},
+				"url": {
+					"raw": "{{host}}:{{port}}/query/model_name",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"query",
+						"model_name"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}:{{port}}/endpoints/model_name",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}:{{port}}/endpoints/model_name",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"endpoints",
+						"model_name"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
