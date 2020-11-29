@@ -1,4 +1,0 @@
-# File : .pep8speaks.yml
-
-flake8:
-        max-line-length: 98
