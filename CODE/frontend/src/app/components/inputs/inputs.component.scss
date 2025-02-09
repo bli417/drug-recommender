@@ -1,0 +1,15 @@
+.search {
+  margin-top: 2em;
+  mat-form-field {
+    width: 20%;
+    padding-left: 0.5em;
+  }
+  button {
+    text-transform: uppercase;
+    margin-left: 2em;
+  }
+}
+
+mat-option {
+  text-transform: capitalize;
+}

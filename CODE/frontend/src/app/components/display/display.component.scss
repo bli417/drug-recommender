@@ -1,0 +1,38 @@
+.recommendation-result {
+  mat-grid-list {
+    width: 80%;
+    margin-left: 10%;
+  }
+}
+
+.legend {
+  position: absolute;
+  margin-left: 80%;
+  margin-top: 640px;
+  font-size: 9pt;
+
+  p {
+    margin: 1px;
+  }
+
+  .key-dot {
+    display: inline-block;
+    height: 10px;
+    margin-right: 0.5em;
+    width: 10px;
+  }
+
+  .recommended {
+    background: #8bc34a;
+  }
+  .similar {
+    background: #03a9f4;
+  }
+  .negative {
+    background: #ef5350;
+  }
+}
+
+mat-card-content p {
+  white-space: pre-line;
+}

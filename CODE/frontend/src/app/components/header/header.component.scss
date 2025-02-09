@@ -1,0 +1,12 @@
+@import '../../../variables';
+header {
+  background: $primary;
+  font-family: 'Roboto', sans-serif;
+  padding: 0.5em;
+  h1 {
+    margin: 0;
+  }
+  h2 {
+    margin: 0;
+  }
+}

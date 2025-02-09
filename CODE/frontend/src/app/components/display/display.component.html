@@ -1,0 +1,36 @@
+<div class="recommendation-result">
+  <mat-grid-list cols="4" rowHeight="700">
+    <mat-grid-tile colspan="3">
+      <svg class="graph" width="100%" height="700"></svg>
+      <div class="legend">
+        <p><span class="key-dot recommended"></span>Recommended Drug</p>
+        <p><span class="key-dot similar"></span>Similar Drugs</p>
+        <p><span class="key-dot negative"></span>Negative Interactions</p>
+      </div>
+    </mat-grid-tile>
+    <mat-grid-tile>
+      <mat-card tabindex="-1" *ngIf="_current">
+        <mat-card-header>
+          <mat-card-title>{{ _currentName }}</mat-card-title>
+          <mat-card-subtitle>{{ _current.brandName }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content [style.overflow]="'auto'" [style.height.px]="'600'">
+          <h4 *ngIf="_current.purpose">Purpose</h4>
+          <p *ngIf="_current.purpose">{{ _current.purpose }}</p>
+          <h4 *ngIf="_current.warnings">Warnings</h4>
+          <p *ngIf="_current.warnings">{{ _current.warnings }}</p>
+          <h4 *ngIf="_currentSimilar.length > 0">Similar Drugs</h4>
+          <p *ngIf="_currentSimilar.length > 0">
+            {{ _currentSimilar.join('\n\n') }}
+          </p>
+          <h4 *ngIf="_currentInteractions.length > 0">
+            Negative Drug Interactions
+          </h4>
+          <p *ngIf="_currentInteractions.length > 0">
+            {{ _currentInteractions.join('\n') }}
+          </p>
+        </mat-card-content>
+      </mat-card>
+    </mat-grid-tile>
+  </mat-grid-list>
+</div>

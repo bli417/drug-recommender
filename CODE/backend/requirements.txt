@@ -1,0 +1,7 @@
+Unidecode==1.0.23
+Flask==1.0.2
+tokenizer==1.0.8
+nltk==3.4
+Flask_Cors==3.0.7
+gensim==3.6.0
+numpy==1.15.4

@@ -1,0 +1,3 @@
+<app-header [title]="title"></app-header>
+<app-inputs (recommended)="onRecommended($event)"></app-inputs>
+<app-display [currentDrug]="recommended" *ngIf="recommendExist"></app-display>
