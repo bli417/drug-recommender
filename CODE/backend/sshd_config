@@ -2,20 +2,21 @@
 # /etc/ssh/sshd_config
 #
 
-Port 			2222
+Port 22
 ListenAddress 		0.0.0.0
 LoginGraceTime 		180
 X11Forwarding 		yes
-Ciphers                 aes128-cbc,3des-cbc,aes256-cbc
-MACs                    hmac-sha1,hmac-sha1-96
+Ciphers aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com
 StrictModes 		yes
 SyslogFacility 		DAEMON
 PrintMotd 		no
 IgnoreRhosts 		no
 #deprecated option 
 #RhostsAuthentication 	no
-RhostsRSAAuthentication yes
+RhostsRSAAuthentication no
 RSAAuthentication 	no
-PasswordAuthentication 	yes
+PasswordAuthentication no
 PermitEmptyPasswords 	no
-PermitRootLogin 	yes
+PermitRootLogin no
+PubkeyAuthentication yes

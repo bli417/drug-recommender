@@ -30,7 +30,19 @@ class Handler(FileSystemEventHandler):
     @staticmethod
     def on_any_event(event):
         if event.src_path == "./requirements.txt":
-            subprocess.call(["./install.sh"])
+            try:
+                result = subprocess.run(
+                    ["./install.sh"], 
+                    timeout=300,
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+                logger.info(f"Install completed: {result.stdout}")
+            except subprocess.TimeoutExpired:
+                logger.error("Install timed out")
+            except subprocess.CalledProcessError as e:
+                logger.error(f"Install failed: {e.stderr}")
 
 
 if __name__ == '__main__':

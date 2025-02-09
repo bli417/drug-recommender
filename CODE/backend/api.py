@@ -9,6 +9,9 @@ from gensim.models import KeyedVectors
 from nltk.stem.wordnet import WordNetLemmatizer
 from pathlib import Path
 from database_generation import create_db, check_row_count
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+import validators
 
 
 # download necessary package
@@ -32,10 +35,17 @@ CORS(app)
 lemmer = WordNetLemmatizer()
 model = KeyedVectors.load(model_file, mmap='r')
 
+limiter = Limiter(app, key_func=get_remote_address)
+
 
 # Search drug that treats the given symptom
 @app.route('/')
+@limiter.limit("100 per minute")
 def search():
+    # Add input validation
+    if not validators.length(request.args['symptom'], min=1, max=100):
+        return jsonify({"error": "Invalid input"}), 400
+
     w = request.args['symptom']
     y = request.args['interactions']
     z = request.args['ingredient']
