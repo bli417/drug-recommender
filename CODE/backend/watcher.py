@@ -2,6 +2,9 @@ import time
 import subprocess
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, FileModifiedEvent
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Watcher:
     DIRECTORY_TO_WATCH = "./"
@@ -16,9 +19,9 @@ class Watcher:
         try:
             while True:
                 time.sleep(5)
-        except:
+        except Exception as e:
+            logger.error(f"Watcher error: {str(e)}")
             self.observer.stop()
-            print("error")
 
         self.observer.join()
 

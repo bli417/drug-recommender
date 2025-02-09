@@ -54,16 +54,8 @@ def search():
         connection = sqlite3.connect(database_file)
         cursor = connection.cursor()
         cursor.execute(
-            "SELECT * from fda_data WHERE indications LIKE" + " '%" + str(
-                w) + "%'" + " OR indications LIKE '%" + str(
-                sim_words[0]) + "%'" + " OR indications LIKE '%" + str(
-                sim_words[1]) + "%'" + " OR indications LIKE '%" + str(
-                sim_words[2]) + "%'" + " AND purpose LIKE" + " '%" + str(
-                w) + "%'" + " OR purpose LIKE" + " '%" + str(
-                sim_words[0]) + "%'" + " OR purpose LIKE" + " '%" + str(
-                sim_words[1]) + "%'" + " OR purpose LIKE" + " '%" + str(
-                sim_words[2]) + "%'" + " AND interactions NOT LIKE" + " '%" + str(
-                y) + "%'" + " AND ingredient NOT LIKE" + " '%" + str(z) + "%'" + " LIMIT 5")
+            "SELECT * from fda_data WHERE indications LIKE ? OR indications LIKE ? OR indications LIKE ? OR indications LIKE ? AND purpose LIKE ? OR purpose LIKE ? OR purpose LIKE ? OR purpose LIKE ? AND interactions NOT LIKE ? AND ingredient NOT LIKE ? LIMIT 5",
+            (f"%{w}%", f"%{sim_words[0]}%", f"%{sim_words[1]}%", f"%{sim_words[2]}%", f"%{w}%", f"%{sim_words[0]}%", f"%{sim_words[1]}%", f"%{sim_words[2]}%", f"%{y}%", f"%{z}%"))
         data = cursor.fetchall()
 
         d = collections.OrderedDict()
@@ -102,8 +94,8 @@ def find():
         connection = sqlite3.connect(database_file)
         cursor = connection.cursor()
         cursor.execute(
-            "SELECT * from fda_data WHERE generic LIKE" + " '%" + str(w) + "%'" + " AND brand LIKE '%" + str(
-                y) + "%'" + " LIMIT 5")
+            "SELECT * from fda_data WHERE generic LIKE ? AND brand LIKE ? LIMIT 5",
+            (f"%{w}%", f"%{y}%"))
         data = cursor.fetchall()
 
         d = collections.OrderedDict()
@@ -112,7 +104,8 @@ def find():
         d['purpose'] = data[0][0]
         d['warnings'] = data[0][8]
 
-        cursor.execute("SELECT * from fda_data WHERE purpose LIKE" + " '%" + d['purpose'] + "%'" + " LIMIT 5")
+        cursor.execute("SELECT * from fda_data WHERE purpose LIKE ? LIMIT 5",
+                      (d['purpose'],))
 
         sim_data = cursor.fetchall()
 
