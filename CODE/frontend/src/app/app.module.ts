@@ -1,21 +1,28 @@
+import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpClientModule } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
+import { LoggerModule, NgxLoggerLevel } from 'ngx-logger';
+// Material Modules
+import { MatChipsModule } from '@angular/material/chips';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatIconModule } from '@angular/material/icon';
-import { MatGridListModule } from '@angular/material/grid-list';
+import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
-import { NgModule } from '@angular/core';
-import { LoggerModule, NgxLoggerLevel } from 'ngx-logger';
-import { FormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatGridListModule } from '@angular/material/grid-list';
 
 import { AppComponent } from './app.component';
-import { HttpClientModule } from '@angular/common/http';
 import { HeaderComponent } from './components/header/header.component';
 import { InputsComponent } from './components/inputs/inputs.component';
 import { DisplayComponent } from './components/display/display.component';
-import { MatSelectModule } from '@angular/material';
+import { RecommendService } from './services/recommend/recommend.service';
+import { DrugService } from './services/drug/drug.service';
+import { MapperService } from './services/mapper/mapper.service';
+import { SymptomService } from './services/symptom/symptom.service';
+import { environment } from '../environments/environment';
 
 @NgModule({
   declarations: [
@@ -27,23 +34,29 @@ import { MatSelectModule } from '@angular/material';
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
-    FormsModule,
     HttpClientModule,
-    MatButtonModule,
-    MatInputModule,
+    FormsModule,
+    // Material Modules
     MatChipsModule,
-    MatIconModule,
-    MatGridListModule,
-    MatCardModule,
+    MatInputModule,
+    MatButtonModule,
     MatSelectModule,
-    LoggerModule.forRoot({ level: NgxLoggerLevel.DEBUG })
+    MatCardModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatGridListModule,
+    LoggerModule.forRoot({
+      level: NgxLoggerLevel.DEBUG,
+      serverLogLevel: NgxLoggerLevel.ERROR
+    })
   ],
   providers: [
-    {
-      provide: 'API',
-      useValue: 'http://localhost:5000/'
-    }
+    RecommendService,
+    DrugService,
+    MapperService,
+    SymptomService,
+    { provide: 'API', useValue: environment.apiUrl }
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class AppModule { }

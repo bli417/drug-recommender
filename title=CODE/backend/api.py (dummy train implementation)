@@ -1,0 +1,3 @@
+def train():
+    # Dummy function to avoid NameError during test run.
+    print("Training not implemented. Please add a training routine or create the model file.") 

@@ -1,4 +1,5 @@
 <div class="recommendation-result">
+  <h2 class="drug-recommendation-title">Drug Recommendation Results</h2>
   <mat-grid-list cols="4" rowHeight="700">
     <mat-grid-tile colspan="3">
       <svg class="graph" width="100%" height="700"></svg>
@@ -15,20 +16,29 @@
           <mat-card-subtitle>{{ _current.brandName }}</mat-card-subtitle>
         </mat-card-header>
         <mat-card-content [style.overflow]="'auto'" [style.height.px]="'600'">
-          <h4 *ngIf="_current.purpose">Purpose</h4>
-          <p *ngIf="_current.purpose">{{ _current.purpose }}</p>
-          <h4 *ngIf="_current.warnings">Warnings</h4>
-          <p *ngIf="_current.warnings">{{ _current.warnings }}</p>
-          <h4 *ngIf="_currentSimilar.length > 0">Similar Drugs</h4>
-          <p *ngIf="_currentSimilar.length > 0">
-            {{ _currentSimilar.join('\n\n') }}
-          </p>
-          <h4 *ngIf="_currentInteractions.length > 0">
-            Negative Drug Interactions
-          </h4>
-          <p *ngIf="_currentInteractions.length > 0">
-            {{ _currentInteractions.join('\n') }}
-          </p>
+          <div class="drug-info-section" *ngIf="_current.purpose">
+            <h4>Purpose</h4>
+            <p>{{ _current.purpose }}</p>
+          </div>
+          
+          <div class="drug-info-section" *ngIf="_current.warnings">
+            <h4>Warnings</h4>
+            <p>{{ _current.warnings }}</p>
+          </div>
+          
+          <div class="drug-info-section" *ngIf="_currentSimilar && _currentSimilar.length > 0">
+            <h4>Similar Drugs</h4>
+            <ul>
+              <li *ngFor="let drug of _currentSimilar">{{ drug }}</li>
+            </ul>
+          </div>
+          
+          <div class="drug-info-section" *ngIf="_currentInteractions && _currentInteractions.length > 0">
+            <h4>Negative Drug Interactions</h4>
+            <ul>
+              <li *ngFor="let drug of _currentInteractions">{{ drug }}</li>
+            </ul>
+          </div>
         </mat-card-content>
       </mat-card>
     </mat-grid-tile>

@@ -3,6 +3,7 @@ import subprocess
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, FileModifiedEvent
 import logging
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,7 @@ class Watcher:
 class Handler(FileSystemEventHandler):
     @staticmethod
     def on_any_event(event):
-        if event.src_path == "./requirements.txt":
+        if Path(event.src_path).resolve() == Path("./requirements.txt").resolve():
             try:
                 result = subprocess.run(
                     ["./install.sh"], 

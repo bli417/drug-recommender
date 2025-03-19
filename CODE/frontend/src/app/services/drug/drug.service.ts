@@ -1,53 +1,60 @@
 import { Injectable, Inject } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { Drug, DrugName } from 'src/app/models/drug.model';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { NGXLogger } from 'ngx-logger';
-import { shareReplay } from 'rxjs/operators';
+import { Drug } from '../../models/drug.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DrugService {
-  private readonly CACHE_SIZE = 2;
-  private cache$: Map<string, Observable<Drug>>;
+  private cache = new Map<string, Observable<Drug>>();
 
   constructor(
     private http: HttpClient,
-    @Inject('API') private api: string,
-    private logger: NGXLogger
-  ) {
-    this.cache$ = new Map<string, Observable<Drug>>();
+    private logger: NGXLogger,
+    @Inject('API') private apiUrl: string
+  ) {}
+
+  /**
+   * Get drug by name
+   * @param name - Name of the drug
+   */
+  get(name: string): Observable<Drug> {
+    this.logger.debug(`DrugService.get: Getting drug by name ${name}`);
+    const key = this.normalize(name);
+    
+    // Return from cache if available
+    const cachedResult = this.cache.get(key);
+    if (cachedResult) {
+      this.logger.debug(`DrugService.get: Found ${name} in cache.`);
+      return cachedResult;
+    }
+
+    // Otherwise, fetch from API and cache
+    const result = this.http.get<Drug>(`${this.apiUrl}/drug/${key}`).pipe(
+      map(drug => {
+        // Add id and name properties if they don't exist
+        if (!drug.id) {
+          drug.id = key;
+        }
+        if (!drug.name) {
+          drug.name = drug.genericName || drug.brandName;
+        }
+        return drug;
+      })
+    );
+    
+    this.cache.set(key, result);
+    return result;
   }
 
   /**
-   * Get drug detail from cache; If not find in cache, get it from backend
-   * @param name String representation of drug name
+   * Normalize drug name for API query
+   * @param name - Name to normalize
    */
-  get(name: DrugName): Observable<Drug> {
-    this.logger.debug(
-      `DrugService.get: Attempt to retrieve data from cache using generic name (${
-        name.genericName
-      }) and brand name (${name.brandName}).`
-    );
-    const key = `?generic=${name.genericName}&brand=${name.brandName}`;
-    if (!this.cache$.has(key)) {
-      this.logger.debug(
-        `DrugService.get: Unable to find data for ${key} in cache, retrieving data from API.`
-      );
-      this.cache$.set(
-        key,
-        this.requestDrugDetails(name).pipe(shareReplay(this.CACHE_SIZE))
-      );
-    }
-
-    return this.cache$.get(key);
-  }
-
-  // Get drug detail for the given name from backend
-  private requestDrugDetails(name: DrugName) {
-    return this.http.get<Drug>(
-      `${this.api}multi/?generic=${name.genericName}&brand=${name.brandName}`
-    );
+  private normalize(name: string): string {
+    return name.toLowerCase().replace(/\s+/g, '-');
   }
 }

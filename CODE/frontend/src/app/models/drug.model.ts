@@ -1,5 +1,7 @@
 /* Model interface for drug information */
 export interface Drug {
+  id: string;               // Unique identifier
+  name: string;             // Display name
   genericName: string;
   brandName: string;
   purpose: string;
@@ -9,6 +11,8 @@ export interface Drug {
 }
 
 export interface DrugName {
+  id: string;               // Unique identifier
+  name: string;             // Display name
   genericName: string;
   brandName: string;
 }

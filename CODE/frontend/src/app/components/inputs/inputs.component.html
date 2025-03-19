@@ -1,52 +1,53 @@
-<div class="search" align="center">
-  <form (submit)="search(symptom.value)">
-    <mat-form-field>
-      <mat-select #symptom placeholder="Pick a symptom">
-        <mat-option *ngFor="let s of symptoms" [value]="s.id">{{
-          s.value
-        }}</mat-option>
-      </mat-select>
-    </mat-form-field>
-    <mat-form-field>
-      <mat-chip-list #medicines>
-        <mat-chip
-          *ngFor="let medicine of dailies"
-          selectable="true"
-          removable="true"
-          (removed)="removeDaily(medicine)"
-        >
-          {{ medicine }}
-          <mat-icon matChipRemove>cancel</mat-icon>
-        </mat-chip>
-        <input
-          placeholder="Daily medications (optional)"
-          [matChipInputFor]="medicines"
-          [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-          [matChipInputAddOnBlur]="addDaily"
-          (matChipInputTokenEnd)="addDaily($event)"
-        />
-      </mat-chip-list>
-    </mat-form-field>
-    <mat-form-field>
-      <mat-chip-list #allergiesList>
-        <mat-chip
-          *ngFor="let allergy of allergies"
-          selectable="true"
-          removable="true"
-          (removed)="removeAllergy(allergy)"
-        >
-          {{ allergy }}
-          <mat-icon matChipRemove>cancel</mat-icon>
-        </mat-chip>
-        <input
-          placeholder="Drug allergies (optional)"
-          [matChipInputFor]="allergiesList"
-          [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-          [matChipInputAddOnBlur]="addAllergy"
-          (matChipInputTokenEnd)="addAllergy($event)"
-        />
-      </mat-chip-list>
-    </mat-form-field>
-    <button type="submit" mat-flat-button color="accent">Search</button>
-  </form>
+<div class="inputs-container">
+  <mat-form-field appearance="outline">
+    <mat-label>Select a symptom</mat-label>
+    <mat-select [(ngModel)]="selectedSymptom">
+      <mat-option *ngFor="let symptom of symptoms" [value]="symptom">
+        {{symptom.name}}
+      </mat-option>
+    </mat-select>
+    <mat-hint *ngIf="symptoms.length === 0">Loading symptoms...</mat-hint>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Daily Medicines</mat-label>
+    <mat-chip-grid #chipGrid>
+      <mat-chip-row *ngFor="let medicine of dailyMedicines" (removed)="removeDaily(medicine)">
+        {{medicine}}
+        <button matChipRemove>
+          <mat-icon>cancel</mat-icon>
+        </button>
+      </mat-chip-row>
+    </mat-chip-grid>
+    <input placeholder="New medicine..."
+           [matChipInputFor]="chipGrid"
+           [matChipInputSeparatorKeyCodes]="[13, 188]"
+           (matChipInputTokenEnd)="addDaily($event)">
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Allergies</mat-label>
+    <mat-chip-grid #allergyGrid>
+      <mat-chip-row *ngFor="let allergy of allergies" (removed)="removeAllergy(allergy)">
+        {{allergy}}
+        <button matChipRemove>
+          <mat-icon>cancel</mat-icon>
+        </button>
+      </mat-chip-row>
+    </mat-chip-grid>
+    <input placeholder="New allergy..."
+           [matChipInputFor]="allergyGrid"
+           [matChipInputSeparatorKeyCodes]="[13, 188]"
+           (matChipInputTokenEnd)="addAllergy($event)">
+  </mat-form-field>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{errorMessage}}
+  </div>
+
+  <button mat-raised-button color="primary" [disabled]="!selectedSymptom || isLoading" (click)="search(selectedSymptom)">
+    <mat-icon *ngIf="isLoading">sync</mat-icon>
+    <span *ngIf="!isLoading">Search</span>
+    <span *ngIf="isLoading">Searching...</span>
+  </button>
 </div>

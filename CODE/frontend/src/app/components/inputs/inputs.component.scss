@@ -13,3 +13,45 @@
 mat-option {
   text-transform: capitalize;
 }
+
+.inputs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+
+  mat-form-field {
+    width: 100%;
+  }
+
+  mat-chip-grid {
+    width: 100%;
+  }
+
+  .error-message {
+    color: #f44336;
+    background-color: #ffebee;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 48px;
+    
+    mat-icon {
+      animation: spin 1.5s linear infinite;
+    }
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

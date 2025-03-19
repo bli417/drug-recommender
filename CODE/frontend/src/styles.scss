@@ -1,17 +1,4 @@
-@import url(https://fonts.googleapis.com/css?family=Roboto);
-@import '~@angular/material/theming';
-@include mat-core();
-
-$frontend-primary: mat-palette($mat-blue);
-$frontend-accent: mat-palette($mat-amber);
-$frontend-warn: mat-palette($mat-red);
-
-$frontend-theme: mat-light-theme(
-  $frontend-primary,
-  $frontend-accent,
-  $frontend-warn
-);
-@include angular-material-theme($frontend-theme);
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
 
 html,
 body {
@@ -21,5 +8,5 @@ body {
   margin: 0;
   color: #212121;
   background: #fafafa;
-  font-family: sans-serif;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
 }

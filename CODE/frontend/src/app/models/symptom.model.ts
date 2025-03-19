@@ -1,6 +1,9 @@
 export interface Symptom {
-  id: string;
-  value: string;
+  id: number;
+  name: string;
+  description?: string;
+  severity?: 'MILD' | 'MODERATE' | 'SEVERE';
+  category?: string;
 }
 
 export class Symptoms {

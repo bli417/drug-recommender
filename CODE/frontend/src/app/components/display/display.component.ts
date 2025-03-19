@@ -1,229 +1,273 @@
-import { DrugName } from 'src/app/models/drug.model';
-import { Drug } from './../../models/drug.model';
-import { Component, OnInit, Input, AfterViewInit } from '@angular/core';
-import * as d3 from 'd3';
-import { MapperService } from 'src/app/services/mapper/mapper.service';
+import { Component, OnInit, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { NGXLogger } from 'ngx-logger';
-import { Node } from 'src/app/models/mapping.model';
-import { DrugService } from 'src/app/services/drug/drug.service';
+import * as d3 from 'd3';
+import { Drug, DrugName } from '../../models/drug.model';
+import { DrugService } from '../../services/drug/drug.service';
+import { MapperService } from '../../services/mapper/mapper.service';
+
+// Define the custom Node interface to fix type errors
+interface GraphNode extends d3.SimulationNodeDatum {
+  id: string;
+  name: string | DrugName;
+  degree: number;
+  isSimilar: boolean;
+}
+
+// Define the Link interface for better type safety
+interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
+  source: GraphNode | string;
+  target: GraphNode | string;
+}
 
 @Component({
   selector: 'app-display',
   templateUrl: './display.component.html',
   styleUrls: ['./display.component.scss']
 })
-export class DisplayComponent implements OnInit, AfterViewInit {
+export class DisplayComponent implements OnInit, OnChanges {
+  @Input() recommended: Drug;
   _current: Drug;
   _currentName: string;
-  _currentSimilar: string[];
-  _currentInteractions: string[];
-  private _width: number;
-  private _height: number;
+  _currentSimilar: string[] = [];
+  _currentInteractions: string[] = [];
+  currentDrug: Drug;
+  private _width = 600;
+  private _height = 600;
+  private svg: any;
+  private simulation: d3.Simulation<GraphNode, GraphLink>;
 
   constructor(
+    private logger: NGXLogger,
     private mapperService: MapperService,
-    private drugService: DrugService,
-    private logger: NGXLogger
+    private drugService: DrugService
   ) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this._width = 600;
+    this._height = 600;
+  }
 
-  ngAfterViewInit() {
-    const size = document
-      .getElementsByClassName('graph')
-      .item(0)
-      .getBoundingClientRect();
-
-    this._width = size.width;
-    this._height = size.height;
-
-    if (this._current) {
-      this.draw();
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.recommended && changes.recommended.currentValue) {
+      this._current = changes.recommended.currentValue;
+      this._currentName = this._current.name || this._current.genericName;
+      
+      // Extract similar drug names
+      this._currentSimilar = this._current.similar 
+        ? this._current.similar.map(drug => drug.genericName || drug.name || 'Unknown')
+        : [];
+      
+      // Extract interaction drug names
+      this._currentInteractions = this._current.interactions 
+        ? this._current.interactions.map(drug => drug.genericName || drug.name || 'Unknown')
+        : [];
+      
+      this.logger.debug('DisplayComponent: Receive new drug:', this._current);
+      if (this._width > 0 && this._height > 0) {
+        this.drawGraph();
+      }
     }
   }
 
-  /**
-   * Object representation of recommended drug
-   */
-  @Input()
-  set currentDrug(input: Drug) {
-    this._current = input;
-    this._currentName = this._current.genericName.split(/(\s-\s)|,/)[0];
-    this._currentSimilar = this._current.similar
-      ? this._current.similar.map(({ genericName }) => genericName)
-      : new Array();
-    this._currentInteractions = this._current.interactions
-      ? this._current.interactions.map(({ genericName }) => genericName)
-      : new Array();
-    if (this._width > 0 && this._height > 0) {
-      this.draw();
-    }
-  }
-
-  // Draw the d3 graph
-  private draw() {
-    d3.selectAll('svg > *').remove();
+  set current(val: Drug) {
+    this._current = val;
+    this._currentName = val ? val.name : '';
     this.logger.debug(
-      `DisplayComponent.draw: Drawing the D3 graph for ${
-        this._current.genericName
+      `DisplayComponent.set.current: Set current drug to ${
+        val ? val.genericName : 'null'
       }`
     );
-
-    this.CreateMapping().then(m => {
-      const nodes = m.nodes.map(d => Object.create(d));
-      const links = m.links.map(d => Object.create(d));
-
-      const graph = d3.select('svg');
-      const simulation = d3
-        .forceSimulation(nodes)
-        .force('link', d3.forceLink(links).id(this.getId))
-        .force('charge', d3.forceManyBody().strength(-20))
-        .force('center', d3.forceCenter(this._width / 2, this._height / 2))
-        .force('collide', d3.forceCollide().radius(51));
-
-      const link = this.createLinks(graph, links);
-      const node = this.createNodes(graph, nodes, simulation);
-      simulation.on('tick', () => this.ticked(link, node));
-    });
   }
 
-  // Create mapping for currently recommended drug
-  private async CreateMapping() {
-    return await this.mapperService.get(this._current);
+  get current(): Drug {
+    return this._current;
   }
 
-  // Create links
-  private createLinks(graph, links) {
-    return graph
+  private drawGraph() {
+    this.logger.debug('DisplayComponent.drawGraph: Draw a new graph.');
+    // set the dimensions and margins of the graph
+    const margin = { top: 10, right: 30, bottom: 30, left: 40 };
+
+    // Remove previous graph if exists
+    d3.select('.graph')
+      .select('svg')
+      .remove();
+
+    // append the svg object to the body of the page
+    this.svg = d3
+      .select('.graph')
+      .append('svg')
+      .attr('width', this._width)
+      .attr('height', this._height)
       .append('g')
-      .attr('stroke', '#bdbdbd')
-      .attr('stroke-opacity', 0.6)
+      .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+    // Create the data for the graph
+    const links: GraphLink[] = [];
+    const nodes: GraphNode[] = [];
+    
+    if (this._current) {
+      this.createLinks(this._current, links);
+      this.createNodes(this._current, nodes, this.simulation);
+    }
+
+    // Initialize the links
+    const link = this.svg
       .selectAll('line')
       .data(links)
       .enter()
       .append('line')
-      .attr('stroke-width', 2);
-  }
+      .style('stroke', '#aaa')
+      .style('stroke-width', 2);
 
-  // Create nodes and labels
-  private createNodes(graph, nodes, simulation) {
-    const node = graph
-      .append('g')
-      .selectAll('.node')
-      .attr('stroke', 'transparent')
-      .attr('stroke-width', 0.5)
+    // Initialize the nodes
+    const node = this.svg
+      .selectAll('g')
       .data(nodes)
       .enter()
-      .append('g')
-      .attr('class', 'node')
-      .call(
-        d3
-          .drag()
-          .on('start', d => this.onDragStart(d, simulation))
-          .on('drag', this.onDragged)
-          .on('end', d => this.onDragEnded(d, simulation))
-      )
-      .on('click', d => {
-        this.changeCurrent(d.name);
+      .append('g');
+      
+    // Simple method that works with most D3 versions
+    const drag = d3.drag()
+      .on('start', (d: any) => {
+        if (this.simulation) this.simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+      })
+      .on('drag', (d: any) => {
+        d.fx = d3.event.x;
+        d.fy = d3.event.y;
+      })
+      .on('end', (d: any) => {
+        if (this.simulation) this.simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
       });
+      
+    node.call(drag as any);
 
-    // Add nodes
+    // Specify the size of the circle
     node
       .append('circle')
-      .attr('r', this.getSize)
-      .attr('fill', this.getColor);
+      .attr('r', (d: any) => {
+        const drugNode = d as unknown as GraphNode;
+        return drugNode.isSimilar ? 15 : 25; // Recommended drug is larger
+      })
+      .style('fill', (d: any) => {
+        const drugNode = d as unknown as GraphNode;
+        return drugNode.isSimilar ? '#03a9f4' : '#8bc34a'; // Recommended=green, Similar=blue
+      })
+      .style('stroke', 'white')
+      .style('stroke-width', 2);
 
-    // Add labels
+    // Add a label at each node
     node
       .append('text')
-      .attr('class', 'label')
-      .style('cursor', 'default')
-      .style('text-anchor', 'middle')
-      .style('font-size', d => (d.degree < 1 ? '12pt' : '8pt'))
-      .text(d =>
-        d.degree < 2 ? d.name.genericName.split(/(\s-\s)|,/)[0] : ''
-      );
-    return node;
+      .attr('dx', 0)
+      .attr('dy', (d: any) => {
+        const drugNode = d as unknown as GraphNode;
+        return drugNode.isSimilar ? 0 : 5; // Center text better
+      })
+      .attr('text-anchor', 'middle')
+      .style('fill', 'white')
+      .style('font-weight', 'bold')
+      .style('font-size', (d: any) => {
+        const drugNode = d as unknown as GraphNode;
+        return drugNode.isSimilar ? '10pt' : '12pt';
+      })
+      .text((d: any) => {
+        const drugNode = d as unknown as GraphNode;
+        const name = this.getNodeName(drugNode);
+        const maxLength = drugNode.isSimilar ? 8 : 12;
+        return name.length > maxLength ? name.substring(0, maxLength) + '...' : name;
+      });
+
+    // Let's list the force we want to add to the simulation
+    this.simulation = d3
+      .forceSimulation<GraphNode, GraphLink>(nodes)
+      .force('link', d3.forceLink<GraphNode, GraphLink>(links).id((d) => d.id))
+      .force('charge', d3.forceManyBody().strength(-400))
+      .force('center', d3.forceCenter(this._width / 2, this._height / 2))
+      .force('collision', d3.forceCollide().radius(40)) // Prevent node overlap
+      .on('tick', () => this.ticked(link, node));
   }
 
-  // Update nodes and links to the correct location
-  private ticked(link, node) {
+  private getNodeName(node: GraphNode): string {
+    if (typeof node.name === 'string') {
+      return node.name;
+    } else if (node.name) {
+      return node.name.genericName || node.name.brandName || '';
+    }
+    return '';
+  }
+
+  private createLinks(graph: Drug, links: GraphLink[]) {
+    if (!graph.similar) {
+      return;
+    }
+    for (const similar of graph.similar) {
+      links.push({
+        source: graph.id || graph.genericName,
+        target: similar.id || similar.genericName
+      });
+    }
+  }
+
+  private createNodes(graph: Drug, nodes: GraphNode[], simulation: d3.Simulation<GraphNode, GraphLink>) {
+    if (!graph) return;
+    
+    const nodeId = graph.id || graph.genericName;
+    if (nodes.findIndex(n => n.id === nodeId) >= 0) {
+      return;
+    }
+    
+    // Add the main (recommended) drug node
+    nodes.push({
+      id: nodeId,
+      name: graph.name || graph.genericName,
+      degree: 0,
+      isSimilar: false // This is the recommended drug, not a similar one
+    });
+
+    if (!graph.similar) {
+      return;
+    }
+    
+    // Add all similar drug nodes
+    for (const similar of graph.similar) {
+      // For similar drugs, we might not have the full Drug object yet
+      // So we add a basic node with the information we have
+      const similarId = similar.id || similar.genericName;
+      if (nodes.findIndex(n => n.id === similarId) < 0) {
+        nodes.push({
+          id: similarId,
+          name: similar,
+          degree: 1,
+          isSimilar: true // Mark as similar drug
+        });
+      }
+    }
+  }
+
+  private ticked(link: any, node: any) {
     link
-      .attr('x1', d => d.source.x)
-      .attr('y1', d => d.source.y)
-      .attr('x2', d => d.target.x)
-      .attr('y2', d => d.target.y);
-    node.attr('transform', d => `translate(${d.x},${d.y})`);
+      .attr('x1', (d: GraphLink) => (d.source as any).x)
+      .attr('y1', (d: GraphLink) => (d.source as any).y)
+      .attr('x2', (d: GraphLink) => (d.target as any).x)
+      .attr('y2', (d: GraphLink) => (d.target as any).y);
+    node.attr('transform', (d: GraphNode) => `translate(${d.x},${d.y})`);
   }
 
-  // Change currently recommended drug to the one selected by user
-  private changeCurrent(name: DrugName) {
-    this.logger.debug(
-      `DisplayComponent.changeCurrent: Change current recommended drug to generic name(${
-        name.genericName
-      }) and brand name (${name.brandName})`
-    );
-    this.drugService.get(name).subscribe(d => (this.currentDrug = d));
+  // Change current drug to the selected one
+  changeCurrent(name: DrugName) {
+    this.drugService.get(name.genericName).subscribe(d => {
+      this.currentDrug = d;
+      this.drawGraph();
+    });
   }
 
   // Get name as id for the current node
-  private getId(data: Node) {
+  private getId(data: GraphNode): string {
     return data.id;
-  }
-
-  // Get node radius for the provided node
-  private getSize(data: Node) {
-    switch (data.degree) {
-      case 0:
-        return 50;
-      case 1:
-        return 20;
-      case 2:
-        return 10;
-      default:
-        return 5;
-    }
-  }
-
-  // Get color for the provided node
-  private getColor(data: Node) {
-    switch (data.degree) {
-      case 0:
-        return '#8bc34a';
-      case 1:
-        if (data.isSimilar) {
-          return '#03a9f4';
-        }
-        return '#ef5350';
-      default:
-        if (data.isSimilar) {
-          return '#77a1b4';
-        }
-        return '#b68887';
-    }
-  }
-
-  // Update node location on drag start
-  private onDragStart(d, simulation) {
-    if (!d3.event.active) {
-      simulation.alphaTarget(0.3).restart();
-    }
-    d.fx = d.x;
-    d.fy = d.y;
-  }
-
-  // Update node location on drag
-  private onDragged(d) {
-    d.fx = d3.event.x;
-    d.fy = d3.event.y;
-  }
-
-  // Fix node location on drag ended
-  private onDragEnded(d, simulation) {
-    d.fx = d3.event.x;
-    d.fy = d3.event.y;
-    if (!d3.event.active) {
-      simulation.alphaTarget(0);
-    }
   }
 }

@@ -1,9 +1,12 @@
 import json
 import sqlite3
-
+from unidecode import unidecode
 from tokenizer import tokenize, TOK
+from pathlib import Path
 
-
+# Set up data directory
+DATA_DIR = Path("data")
+DATA_DIR.mkdir(exist_ok=True)
 
 def create_db(name="pythonsqlite.db"):
     print("Please download dataset from openFDA(https://open.fda.gov/apis/drug/label/download/) first before running this method")
@@ -12,7 +15,7 @@ def create_db(name="pythonsqlite.db"):
                  "drug-label-0004-of-0007.json", "drug-label-0005-of-0007.json", "drug-label-0006-of-0007.json",
                  "drug-label-0007-of-0007.json"]
     try:
-        connect = sqlite3.connect(name)
+        connect = sqlite3.connect(DATA_DIR / name)
         cursor = connect.cursor()
         cursor.execute('''DROP TABLE IF EXISTS fda_data''')
         cursor.execute('''
@@ -22,7 +25,7 @@ def create_db(name="pythonsqlite.db"):
         connect.commit()
         for file in filenames:
             print(file)
-            with open(file, 'r', encoding='utf-8') as fp:
+            with open(DATA_DIR / file, 'r', encoding='utf-8') as fp:
                 obj = json.load(fp)
                 print("number of results = ", len(obj['results']))
 
@@ -149,7 +152,7 @@ def create_db(name="pythonsqlite.db"):
 def check_row_count(db_file="pythonsqlite.db"):
     """ Check the total row count of the database """
     try:
-        conn = sqlite3.connect(db_file)
+        conn = sqlite3.connect(DATA_DIR / db_file)
         print(sqlite3.version)
         cursor = conn.execute("SELECT count(*) from fda_data")
         for row in cursor:
