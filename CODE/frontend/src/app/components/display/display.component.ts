@@ -125,7 +125,20 @@ export class DisplayComponent implements OnInit, OnChanges {
       .selectAll('g')
       .data(nodes)
       .enter()
-      .append('g');
+      .append('g')
+      .on('click', (d: any) => {
+        // Reset all circles to default stroke width
+        d3.selectAll('circle').style('stroke-width', 2);
+        
+        // Highlight the clicked node
+        d3.select(d3.event.currentTarget)
+          .select('circle')
+          .style('stroke', '#ff9800')
+          .style('stroke-width', 4);
+        
+        this.handleNodeClick(d);
+      })
+      .style('cursor', 'pointer'); // Change cursor to indicate clickable
       
     // Simple method that works with most D3 versions
     const drag = d3.drag()
@@ -157,8 +170,14 @@ export class DisplayComponent implements OnInit, OnChanges {
         const drugNode = d as unknown as GraphNode;
         return drugNode.isSimilar ? '#03a9f4' : '#8bc34a'; // Recommended=green, Similar=blue
       })
-      .style('stroke', 'white')
-      .style('stroke-width', 2);
+      .style('stroke', (d: any) => {
+        const drugNode = d as unknown as GraphNode;
+        return drugNode.isSimilar ? 'white' : '#ff9800'; // Highlight recommended node by default
+      })
+      .style('stroke-width', (d: any) => {
+        const drugNode = d as unknown as GraphNode;
+        return drugNode.isSimilar ? 2 : 4; // Thicker stroke for recommended node
+      });
 
     // Add a label at each node
     node
@@ -269,5 +288,88 @@ export class DisplayComponent implements OnInit, OnChanges {
   // Get name as id for the current node
   private getId(data: GraphNode): string {
     return data.id;
+  }
+
+  private handleNodeClick(node: any) {
+    const drugNode = node as unknown as GraphNode;
+    this.logger.debug('Node clicked:', drugNode);
+    
+    // If this is the recommended drug, we already have the details
+    if (!drugNode.isSimilar) {
+      // Just reset to show the main recommended drug
+      this._current = this.recommended;
+      this._currentName = this._current.name || this._current.genericName;
+      this._currentSimilar = this._current.similar 
+        ? this._current.similar.map(drug => drug.genericName || drug.name || 'Unknown')
+        : [];
+      this._currentInteractions = this._current.interactions 
+        ? this._current.interactions.map(drug => drug.genericName || drug.name || 'Unknown')
+        : [];
+      return;
+    }
+
+    // Get the drug name from the node
+    const drugName = this.getNodeName(drugNode);
+    this.logger.debug(`Fetching details for similar drug: ${drugName}`);
+    
+    // Try to fetch more complete data using the drug service
+    this.drugService.get(drugName).subscribe(
+      (fullDrugData) => {
+        // If we successfully fetched data
+        this.logger.debug('Fetched full drug data:', fullDrugData);
+        this._current = fullDrugData;
+        this._currentName = fullDrugData.name || fullDrugData.genericName;
+        this._currentSimilar = fullDrugData.similar 
+          ? fullDrugData.similar.map(drug => drug.genericName || drug.name || 'Unknown')
+          : [];
+        this._currentInteractions = fullDrugData.interactions 
+          ? fullDrugData.interactions.map(drug => drug.genericName || drug.name || 'Unknown')
+          : [];
+      },
+      (error) => {
+        // If API fetch fails, fallback to data from the recommended drug
+        this.logger.warn('Failed to fetch detailed drug data, using available data', error);
+        
+        // For similar drugs, check if they have information in the recommended drug's similar array
+        if (this.recommended && this.recommended.similar) {
+          const similarDrug = this.recommended.similar.find(drug => 
+            (drug.id && drug.id === drugNode.id) || 
+            (drug.genericName && drug.genericName === drugName)
+          );
+
+          if (similarDrug) {
+            // Create a full Drug object from the DrugName object
+            this._current = {
+              id: similarDrug.id,
+              name: similarDrug.name,
+              genericName: similarDrug.genericName,
+              brandName: similarDrug.brandName,
+              purpose: 'Information not available',
+              warnings: 'No specific warnings available',
+              similar: [],
+              interactions: []
+            };
+            this._currentName = similarDrug.name || similarDrug.genericName;
+            this._currentSimilar = [];
+            this._currentInteractions = [];
+          } else {
+            // If we don't have complete information, show a minimal view
+            this._current = {
+              id: drugNode.id,
+              name: drugName,
+              genericName: drugName,
+              brandName: 'Unknown',
+              purpose: 'Detailed information not available for this similar drug.',
+              warnings: 'No specific warnings available.',
+              similar: [],
+              interactions: []
+            };
+            this._currentName = drugName;
+            this._currentSimilar = [];
+            this._currentInteractions = [];
+          }
+        }
+      }
+    );
   }
 }

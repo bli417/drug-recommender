@@ -1,46 +1,69 @@
 <div class="recommendation-result">
   <h2 class="drug-recommendation-title">Drug Recommendation Results</h2>
-  <mat-grid-list cols="4" rowHeight="700">
-    <mat-grid-tile colspan="3">
-      <svg class="graph" width="100%" height="700"></svg>
+  
+  <div class="results-layout">
+    <div class="graph-container">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Drug Interaction Network</mat-card-title>
+          <mat-card-subtitle>Visual representation of recommended and similar drugs</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <svg class="graph" width="100%" height="500"></svg>
+        </mat-card-content>
+      </mat-card>
+      
       <div class="legend">
         <p><span class="key-dot recommended"></span>Recommended Drug</p>
         <p><span class="key-dot similar"></span>Similar Drugs</p>
         <p><span class="key-dot negative"></span>Negative Interactions</p>
       </div>
-    </mat-grid-tile>
-    <mat-grid-tile>
+    </div>
+    
+    <div class="info-container">
       <mat-card tabindex="-1" *ngIf="_current">
         <mat-card-header>
           <mat-card-title>{{ _currentName }}</mat-card-title>
           <mat-card-subtitle>{{ _current.brandName }}</mat-card-subtitle>
         </mat-card-header>
-        <mat-card-content [style.overflow]="'auto'" [style.height.px]="'600'">
+        <mat-card-content>
           <div class="drug-info-section" *ngIf="_current.purpose">
-            <h4>Purpose</h4>
+            <h4>
+              <mat-icon>info</mat-icon>
+              Purpose
+            </h4>
             <p>{{ _current.purpose }}</p>
           </div>
           
           <div class="drug-info-section" *ngIf="_current.warnings">
-            <h4>Warnings</h4>
+            <h4>
+              <mat-icon>warning</mat-icon>
+              Warnings
+            </h4>
             <p>{{ _current.warnings }}</p>
           </div>
           
           <div class="drug-info-section" *ngIf="_currentSimilar && _currentSimilar.length > 0">
-            <h4>Similar Drugs</h4>
+            <h4>
+              <mat-icon>compare_arrows</mat-icon>
+              Similar Drugs
+            </h4>
             <ul>
               <li *ngFor="let drug of _currentSimilar">{{ drug }}</li>
             </ul>
           </div>
           
           <div class="drug-info-section" *ngIf="_currentInteractions && _currentInteractions.length > 0">
-            <h4>Negative Drug Interactions</h4>
+            <h4>
+              <mat-icon>dangerous</mat-icon>
+              Negative Drug Interactions
+            </h4>
             <ul>
               <li *ngFor="let drug of _currentInteractions">{{ drug }}</li>
             </ul>
           </div>
         </mat-card-content>
       </mat-card>
-    </mat-grid-tile>
-  </mat-grid-list>
+    </div>
+  </div>
 </div>

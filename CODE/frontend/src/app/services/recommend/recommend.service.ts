@@ -31,7 +31,7 @@ export class RecommendService {
       name: 'Ibuprofen',
       genericName: 'Ibuprofen',
       brandName: 'Advil',
-      purpose: 'Pain reliever and fever reducer',
+      purpose: 'Pain reliever, fever reducer, and anti-inflammatory',
       warnings: 'Stomach bleeding warning: This product contains an NSAID, which may cause severe stomach bleeding.',
       similar: [
         { id: 'acetaminophen', name: 'Acetaminophen', genericName: 'Acetaminophen', brandName: 'Tylenol' },

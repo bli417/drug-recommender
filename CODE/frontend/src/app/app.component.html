@@ -1,3 +1,15 @@
-<app-header [title]="title"></app-header>
-<app-inputs (recommended)="onRecommended($event)"></app-inputs>
-<app-display [recommended]="recommended" *ngIf="recommendExist"></app-display>
+<div class="app-container">
+  <app-header [title]="title"></app-header>
+  
+  <div class="content-container">
+    <app-inputs (recommended)="onRecommended($event)"></app-inputs>
+    
+    <div @fadeInOut *ngIf="recommendExist" class="results-container">
+      <app-display [recommended]="recommended"></app-display>
+    </div>
+  </div>
+  
+  <footer>
+    <p>&copy; {{ currentYear }} Drug Recommender System - CSE 6242 Team 61</p>
+  </footer>
+</div>
