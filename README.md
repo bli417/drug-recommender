@@ -1,4 +1,4 @@
-# CSE 6242 Team 61 Group Project
+# Project Description
 
 Rx Recommender is created to allow user to search medications based on their symptoms. The drug details are presented in a visualized and interactive way to emphasize the important pieces, with the goal of making it easier for users to consume the information.
 
